@@ -68,13 +68,20 @@
     }
   }, 2000);
 
-  function accion(tipo) {
-    if (tipo === 'ahora') {
-      iniciarContador(3);
-    } else {
-      iniciarContador(10);
-    }
+  function accion(tipo) function accion(tipo) {
+  let mensaje = tipo === 'ahora'
+    ? "📍 Ingresá calle y número + horario de entrega (Ej: Av Roca 123 - 17:30)"
+    : "📍 Reprogramación: Ingresá nueva calle y hora";
+
+  let datos = prompt(mensaje);
+
+  if (datos) {
+    const minutos = tipo === 'ahora' ? 3 : 10;
+    document.getElementById('contador').innerText = `⏳ Tu paquete se entregará en ${minutos} minutos`;
+    iniciarContador(minutos);
   }
+}
+
 
   function iniciarContador(minutos) {
     let t = minutos * 60;
