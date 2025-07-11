@@ -81,7 +81,7 @@ let puntoEntrega;
     }
   }, 2000);
 
-  function accion(tipo) function accion(tipo) {
+ function accion(tipo) {
   let mensaje = tipo === 'ahora'
     ? "📍 Ingresá calle y número + horario de entrega (Ej: Av Roca 123 - 17:30)"
     : "📍 Reprogramación: Ingresá nueva calle y hora";
@@ -91,9 +91,31 @@ let puntoEntrega;
   if (datos) {
     const minutos = tipo === 'ahora' ? 3 : 10;
     document.getElementById('contador').innerText = `⏳ Tu paquete se entregará en ${minutos} minutos`;
+
+    // Simulación de coordenadas según tipo
+    let coordsEntrega = tipo === 'ahora'
+      ? [-51.6205, -69.2175]
+      : [-51.6212, -69.2160];
+
+    // Si ya existe el marcador, quitarlo
+    if (puntoEntrega) {
+      map.removeLayer(puntoEntrega);
+    }
+
+    // Crear marcador nuevo de punto de entrega
+    puntoEntrega = L.marker(coordsEntrega, {
+      icon: L.icon({
+        iconUrl: 'https://cdn-icons-png.flaticon.com/128/684/684908.png',
+        iconSize: [32, 32],
+        iconAnchor: [16, 32]
+      })
+    }).addTo(map).bindPopup(`📦 Entrega programada:<br>${datos}`).openPopup();
+
     iniciarContador(minutos);
+    map.setView(coordsEntrega, 15);
   }
 }
+
 
 
   function iniciarContador(minutos) {
