@@ -8,7 +8,7 @@
   <style>
     body { font-family: Arial; margin: 0; background-color: #e3f2fd; }
     header { background-color: #0084ff; color: white; text-align: center; padding: 10px; }
-    #map { height: 400px; margin: 15px; }
+    #map { height: 100vh; width: 100%; }
   </style>
 </head>
 <body>
@@ -21,22 +21,22 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-  const destino = [-51.6200, -69.2150];
-  const sucursal = [-51.6226, -69.2181];
+  const sucursal = [-51.6215, -69.2185];
+  const destino = [-51.6205, -69.2175]; // sincronizado con cliente
 
   const map = L.map('map').setView(sucursal, 14);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-  // Moto amarilla
+  // 🛵 Moto principal (amarilla)
   const moto = L.marker(sucursal, {
     icon: L.icon({
-      iconUrl: 'https://cdn-icons-png.flaticon.com/128/826/826278.png', // Moto amarilla
+      iconUrl: 'https://cdn-icons-png.flaticon.com/128/826/826278.png',
       iconSize: [32, 32],
       iconAnchor: [16, 16]
     })
-  }).addTo(map).bindPopup("🏍️ En salida desde sucursal");
+  }).addTo(map).bindPopup("🛵 Entrega activa");
 
-  // Sucursal visible
+  // 🏢 Sucursal
   L.marker(sucursal, {
     icon: L.icon({
       iconUrl: 'https://cdn-icons-png.flaticon.com/128/1483/1483336.png',
@@ -45,14 +45,40 @@
     })
   }).addTo(map).bindPopup("🏢 Sucursal Mercado Express");
 
-  // Línea violeta al destino
-  const ruta = L.polyline([sucursal, destino], {
+  // 📍 Destino cliente
+  L.marker(destino, {
+    icon: L.icon({
+      iconUrl: 'https://cdn-icons-png.flaticon.com/128/684/684908.png',
+      iconSize: [32, 32],
+      iconAnchor: [16, 32]
+    })
+  }).addTo(map).bindPopup("📦 Cliente");
+
+  // 💜 Ruta compartida al destino
+  L.polyline([sucursal, destino], {
     color: 'violet',
     weight: 5,
     dashArray: '8,5'
   }).addTo(map);
 
-  // Movimiento simulado hacia destino
+  // 🛵 Motos adicionales simuladas
+  const otrasMotos = [
+    { lat: -51.6220, lng: -69.2190, color: 'red', label: '🟥' },
+    { lat: -51.6212, lng: -69.2168, color: 'blue', label: '🟦' },
+    { lat: -51.6223, lng: -69.2172, color: 'green', label: '🟩' }
+  ];
+
+  otrasMotos.forEach(m => {
+    L.marker([m.lat, m.lng], {
+      icon: L.icon({
+        iconUrl: 'https://cdn-icons-png.flaticon.com/128/2595/2595121.png',
+        iconSize: [32, 32],
+        iconAnchor: [16, 16]
+      })
+    }).addTo(map).bindPopup(`Repartidor ${m.label}`);
+  });
+
+  // 🏍️ Movimiento de la moto principal hacia destino
   setInterval(() => {
     const pos = moto.getLatLng();
     const dx = (destino[0] - pos.lat) * 0.05;
@@ -62,11 +88,10 @@
 
     moto.setLatLng([nuevaLat, nuevaLng]);
 
-    // Verificar llegada
     const distancia = Math.sqrt(Math.pow(destino[0] - nuevaLat, 2) + Math.pow(destino[1] - nuevaLng, 2));
     if (distancia < 0.0003 && !window.entregado) {
       window.entregado = true;
-      alert("📦 Paquete entregado al cliente.");
+      alert("📦 Entrega completada al cliente.");
     }
   }, 2000);
 </script>
