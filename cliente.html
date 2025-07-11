@@ -85,13 +85,14 @@
     if (nuevaLat < -51.621 && !window.notificado && !puntoEntrega) {
   window.notificado = true;
 
-  // Mostrar alerta visual
+  // 🔔 Mostrar campanita visual
   document.getElementById('alerta').style.display = 'inline-block';
 
-  // Notificación emergente
-  alert("📬 Tu paquete llegó a destino. ¿Querés recibirlo?");
+  // 📬 Mostrar cartel con retraso
+  setTimeout(() => {
+    alert("📬 Tu paquete llegó a destino. ¿Querés recibirlo?");
+  }, 1000);
 }
-
   }, 2000);
 
   function accion(tipo) {
