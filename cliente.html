@@ -7,11 +7,12 @@
   <style>
     body { font-family: Arial; margin: 0; background-color: #fff8dc; }
     header { background-color: #0084ff; color: white; text-align: center; padding: 10px; }
-    nav button { padding: 10px; margin: 5px; background-color: #ffcc00; border: none; border-radius: 5px; }
+    nav button { padding: 10px; margin: 5px; background-color: #ffcc00; border: none; border-radius: 5px; position: relative; }
     section { padding: 15px; }
     .btn { background-color: #28a745; color: white; padding: 10px; border: none; border-radius: 5px; margin: 5px; }
     #contador { font-size: 22px; color: #d32f2f; font-weight: bold; margin-top: 10px; }
     #map { height: 300px; margin-top: 10px; }
+    #alerta { position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; padding: 2px 6px; font-size: 12px; display: none; }
   </style>
 </head>
 <body>
@@ -21,18 +22,20 @@
 </header>
 
 <nav>
-  <button onclick="vista('noti')">🔔 Notificaciones <span id="alerta" style="display:none; background:red; color:white; border-radius:50%; padding:2px 6px; font-size:12px;">1</span></button>
+  <button onclick="vista('noti')">🔔 Notificaciones <span id="alerta">1</span></button>
   <button onclick="vista('mapa')">🗺️ Ver paquete</button>
 </nav>
 
-
 <section id="noti">
-  <h2>¿Recibir paquete ahora?</h2>
+  <div id="avisoLlegada" style="display:none; font-weight:bold; margin-bottom:10px;">
+    📬 Tu paquete ha llegado. ¿Deseás programar la entrega?
+  </div>
+
   <div id="acciones" style="display:none;">
-  <button class="btn" onclick="accion('ahora')">✅ Recibir ahora</button>
-  <button class="btn" onclick="accion('posponer')">🕓 Posponer entrega</button>
-</div>
-  <br><br>
+    <button class="btn" onclick="accion('ahora')">✅ Recibir ahora</button>
+    <button class="btn" onclick="accion('posponer')">🕓 Posponer entrega</button>
+  </div>
+
   <label>Lugar:</label><input type="text" placeholder="Ej. Calle 123"><br><br>
   <label>Hora:</label><input type="time"><br><br>
   <div id="contador"></div>
@@ -45,19 +48,6 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-  function vista(v) function vista(v) {
-  document.getElementById('noti').style.display = v === 'noti' ? 'block' : 'none';
-  document.getElementById('mapa').style.display = v === 'mapa' ? 'block' : 'none';
-  if (v === 'mapa') setTimeout(() => map.invalidateSize(), 300);
-
-  // 📬 Mostrar aviso si el paquete ha llegado y no hay entrega programada
-  if (v === 'noti' && window.notificado && !puntoEntrega) {
-    alert("📬 Tu paquete ha llegado. ¿Deseás programar la entrega?");
-    document.getElementById('acciones').style.display = 'block';
-  } else {
-    document.getElementById('acciones').style.display = 'none';
-  }
-}
   const map = L.map('map').setView([-51.6226, -69.2181], 14);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
@@ -70,99 +60,19 @@
     })
   }).addTo(map).bindPopup('🏢 Sucursal Mercado Express');
 
-  // 📦 Paquete en tránsito
+  // 🛵 Moto simulando paquete
   const paquete = L.marker([-51.6226, -69.2181], {
-  icon: L.icon({
-    iconUrl: 'https://cdn-icons-png.flaticon.com/128/826/826278.png', // moto amarilla
-    iconSize: [32, 32],
-    iconAnchor: [16, 16]
-  })
-}).addTo(map).bindPopup("🛵 Paquete en tránsito");
+    icon: L.icon({
+      iconUrl: 'https://cdn-icons-png.flaticon.com/128/826/826278.png',
+      iconSize: [32, 32],
+      iconAnchor: [16, 16]
+    })
+  }).addTo(map).bindPopup("🛵 Paquete en tránsito");
 
   let puntoEntrega;
   let rutaEntrega;
 
-  // Movimiento del paquete
+  // Simular movimiento del paquete
   setInterval(() => {
     let pos = paquete.getLatLng();
-    let dx = 0.0001, dy = -0.0001;
-    let nuevaLat = pos.lat + dx;
-    let nuevaLng = pos.lng + dy;
-    paquete.setLatLng([nuevaLat, nuevaLng]);
-
-    // Avisar si llegó a destino (simulado)
-    if (nuevaLat < -51.621 && !window.notificado && !puntoEntrega) {
-  window.notificado = true;
-
-  // 🔔 Mostrar campanita visual
-  document.getElementById('alerta').style.display = 'inline-block';
-
-  // 📬 Mostrar cartel con retraso
-  setTimeout(() => {
-    alert("📬 Tu paquete llegó a destino. ¿Querés recibirlo?");
-  }, 1000);
-}
-  }, 2000);
-
-  function accion(tipo) {
-    let mensaje = tipo === 'ahora'
-      ? "📍 Ingresá calle y número + horario de entrega (Ej: Av Roca 123 - 17:30)"
-      : "📍 Reprogramación: Ingresá nueva calle y hora";
-
-    let datos = prompt(mensaje);
-
-    if (datos) {
-      const minutos = tipo === 'ahora' ? 3 : 10;
-      document.getElementById('contador').innerText = `⏳ Tu paquete se entregará en ${minutos} minutos`;
-
-      let coordsEntrega = tipo === 'ahora'
-        ? [-51.6205, -69.2175]
-        : [-51.6212, -69.2160];
-
-      if (puntoEntrega) {
-        map.removeLayer(puntoEntrega);
-      }
-
-      puntoEntrega = L.marker(coordsEntrega, {
-        icon: L.icon({
-          iconUrl: 'https://cdn-icons-png.flaticon.com/128/684/684908.png',
-          iconSize: [32, 32],
-          iconAnchor: [16, 32]
-        })
-      }).addTo(map).bindPopup(`📦 Entrega programada:<br>${datos}`).openPopup();
-
-      // 💜 Ruta violeta entre sucursal y entrega
-      if (rutaEntrega) {
-        map.removeLayer(rutaEntrega);
-      }
-
-      rutaEntrega = L.polyline([sucursal.getLatLng(), coordsEntrega], {
-        color: 'violet',
-        weight: 5,
-        opacity: 0.9,
-        dashArray: '8,5'
-      }).addTo(map);
-
-      iniciarContador(minutos);
-      map.setView(coordsEntrega, 15);
-    }
-  }
-
-  function iniciarContador(minutos) {
-    let t = minutos * 60;
-    let el = document.getElementById('contador');
-    let i = setInterval(() => {
-      let m = Math.floor(t / 60);
-      let s = t % 60;
-      el.innerText = `⏳ Falta ${m}:${s < 10 ? '0' + s : s} para recibir tu paquete`;
-      t--;
-      if (t < 0) {
-        clearInterval(i);
-        el.innerText = '📦 Entrega completada';
-      }
-    }, 1000);
-  }
-</script>
-
-</body>
-</html>
+    let
