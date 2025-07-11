@@ -63,12 +63,12 @@
 
   // 📦 Paquete en tránsito
   const paquete = L.marker([-51.6226, -69.2181], {
-    icon: L.icon({
-      iconUrl: 'https://cdn-icons-png.flaticon.com/128/833/833524.png',
-      iconSize: [32, 32],
-      iconAnchor: [16, 16]
-    })
-  }).addTo(map);
+  icon: L.icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/128/826/826278.png', // moto amarilla
+    iconSize: [32, 32],
+    iconAnchor: [16, 16]
+  })
+}).addTo(map).bindPopup("🛵 Paquete en tránsito");
 
   let puntoEntrega;
   let rutaEntrega;
