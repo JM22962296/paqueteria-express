@@ -83,9 +83,15 @@
 
     // Avisar si llegó a destino (simulado)
     if (nuevaLat < -51.621 && !window.notificado && !puntoEntrega) {
-      window.notificado = true;
-      alert("📬 Tu paquete llegó a destino. ¿Querés recibirlo?");
-    }
+  window.notificado = true;
+
+  // Mostrar alerta visual
+  document.getElementById('alerta').style.display = 'inline-block';
+
+  // Notificación emergente
+  alert("📬 Tu paquete llegó a destino. ¿Querés recibirlo?");
+}
+
   }, 2000);
 
   function accion(tipo) {
