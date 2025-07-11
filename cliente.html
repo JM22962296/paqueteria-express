@@ -63,6 +63,9 @@ const sucursal = L.marker([-51.6215, -69.2185], {
 
 // Marcador flotante para entrega (se crea dinámicamente)
 let puntoEntrega;
+  let puntoEntrega;
+let rutaEntrega;
+
 
   const paquete = L.marker([-51.6226, -69.2181], {
     icon: L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/128/833/833524.png', iconSize: [32,32], iconAnchor: [16,16] })
@@ -110,6 +113,19 @@ let puntoEntrega;
         iconAnchor: [16, 32]
       })
     }).addTo(map).bindPopup(`📦 Entrega programada:<br>${datos}`).openPopup();
+
+    // 💜 Ruta entre sucursal y entrega
+if (rutaEntrega) {
+  map.removeLayer(rutaEntrega);
+}
+
+rutaEntrega = L.polyline([sucursal.getLatLng(), coordsEntrega], {
+  color: 'violet',
+  weight: 5,
+  opacity: 0.9,
+  dashArray: '8,5'
+}).addTo(map);
+
 
     iniciarContador(minutos);
     map.setView(coordsEntrega, 15);
