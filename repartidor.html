@@ -31,9 +31,10 @@
   // Mover hacia destino
   setInterval(() => {
     let pos = moto.getLatLng();
-    let lat = pos.lat + 0.0001;
-    let lng = pos.lng - 0.0001;
-    moto.setLatLng([lat, lng]);
+    let nuevoLat = pos.lat;
+let nuevoLng = pos.lng - 0.00008;
+moto.setLatLng([nuevoLat, nuevoLng]);
+
 
     // Simulación llegada
     if (lat >= destino[0] - 0.0005 && lng <= destino[1] + 0.0005 && !window.avisado) {
