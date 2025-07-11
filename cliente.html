@@ -6,14 +6,78 @@
   <title>Cliente - Mercado Express</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
-    body { font-family: Arial; margin: 0; background-color: #fff8dc; }
-    header { background-color: #0084ff; color: white; text-align: center; padding: 10px; }
-    nav button { padding: 10px; margin: 5px; background-color: #ffcc00; border: none; border-radius: 5px; position: relative; }
-    section { padding: 15px; }
-    .btn { background-color: #28a745; color: white; padding: 10px; border: none; border-radius: 5px; margin: 5px; }
-    #contador { font-size: 22px; color: #d32f2f; font-weight: bold; margin-top: 10px; }
-    #map { height: 300px; margin-top: 10px; }
-    #alerta { position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; padding: 2px 6px; font-size: 12px; display: none; }
+    body {
+      font-family: Arial;
+      margin: 0;
+      background-color: #fff8dc;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+
+    header {
+      background-color: #0084ff;
+      color: white;
+      text-align: center;
+      padding: 10px;
+    }
+
+    nav button {
+      padding: 10px;
+      margin: 5px;
+      background-color: #ffcc00;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      width: 100%;
+      max-width: 300px;
+      position: relative;
+    }
+
+    section, #map { max-width: 100%; width: 100%; }
+
+    .btn {
+      background-color: #28a745;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      margin: 5px;
+      width: 100%;
+      max-width: 300px;
+      font-size: 16px;
+    }
+
+    input {
+      width: 100%;
+      max-width: 300px;
+      padding: 8px;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+
+    #contador {
+      font-size: 22px;
+      color: #d32f2f;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    #map {
+      height: 300px;
+      margin-top: 10px;
+    }
+
+    #alerta {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: red;
+      color: white;
+      border-radius: 50%;
+      padding: 2px 6px;
+      font-size: 12px;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -49,10 +113,11 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+  window.notificado = false;
+
   const map = L.map('map').setView([-51.6226, -69.2181], 14);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-  // 📍 Sucursal fija
   const sucursal = L.marker([-51.6215, -69.2185], {
     icon: L.icon({
       iconUrl: 'https://cdn-icons-png.flaticon.com/128/1483/1483336.png',
@@ -61,7 +126,6 @@
     })
   }).addTo(map).bindPopup('🏢 Sucursal Mercado Express');
 
-  // 🛵 Moto simulando paquete
   const paquete = L.marker([-51.6226, -69.2181], {
     icon: L.icon({
       iconUrl: 'https://cdn-icons-png.flaticon.com/128/826/826278.png',
@@ -73,7 +137,84 @@
   let puntoEntrega;
   let rutaEntrega;
 
-  // Simular movimiento del paquete
   setInterval(() => {
-    let pos = paquete.getLatLng();
-    let
+    const pos = paquete.getLatLng();
+    const nuevaLat = pos.lat + 0.0002;
+    const nuevaLng = pos.lng - 0.0001;
+    paquete.setLatLng([nuevaLat, nuevaLng]);
+
+    if (nuevaLat < -51.622 && !window.notificado && !puntoEntrega) {
+      window.notificado = true;
+      document.getElementById('alerta').style.display = 'inline-block';
+    }
+  }, 2000);
+
+  function vista(v) {
+    document.getElementById('noti').style.display = v === 'noti' ? 'block' : 'none';
+    document.getElementById('mapa').style.display = v === 'mapa' ? 'block' : 'none';
+    if (v === 'mapa') setTimeout(() => map.invalidateSize(), 300);
+
+    if (v === 'noti' && window.notificado && !puntoEntrega) {
+      document.getElementById('avisoLlegada').style.display = 'block';
+      document.getElementById('acciones').style.display = 'block';
+      document.getElementById('alerta').style.display = 'none';
+    }
+  }
+
+  function accion(tipo) {
+    const mensaje = tipo === 'ahora'
+      ? "📍 Ingresá calle y número + horario de entrega (Ej: Av Roca 123 - 17:30)"
+      : "📍 Reprogramación: Ingresá nueva dirección y hora";
+
+    const datos = prompt(mensaje);
+    if (datos) {
+      const minutos = tipo === 'ahora' ? 3 : 10;
+      document.getElementById('contador').innerText = `⏳ Tu paquete se entregará en ${minutos} minutos`;
+
+      const coordsEntrega = tipo === 'ahora'
+        ? [-51.6205, -69.2175]
+        : [-51.6212, -69.2160];
+
+      if (puntoEntrega) map.removeLayer(puntoEntrega);
+
+      puntoEntrega = L.marker(coordsEntrega, {
+        icon: L.icon({
+          iconUrl: 'https://cdn-icons-png.flaticon.com/128/684/684908.png',
+          iconSize: [32, 32],
+          iconAnchor: [16, 32]
+        })
+      }).addTo(map).bindPopup(`📦 Entrega programada:<br>${datos}`).openPopup();
+
+      if (rutaEntrega) map.removeLayer(rutaEntrega);
+
+      rutaEntrega = L.polyline([sucursal.getLatLng(), coordsEntrega], {
+        color: 'violet',
+        weight: 5,
+        opacity: 0.9,
+        dashArray: '8,5'
+      }).addTo(map);
+
+      iniciarContador(minutos);
+      map.setView(coordsEntrega, 15);
+      vista('mapa');
+    }
+  }
+
+  function iniciarContador(minutos) {
+    let t = minutos * 60;
+    const el = document.getElementById('contador');
+    const i = setInterval(() => {
+      const m = Math.floor(t / 60);
+      const s = t % 60;
+      el.innerText = `⏳ Falta ${m}:${s < 10 ? '0' + s : s} para recibir tu paquete`;
+      t--;
+      if (t < 0) {
+        clearInterval(i);
+        el.innerText = '📦 Entrega completada';
+      }
+    }, 1000);
+  }
+</script>
+
+</body>
+</html>
