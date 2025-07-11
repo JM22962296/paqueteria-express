@@ -5,40 +5,9 @@
   <title>Repartidor - Mercado Express</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background-color: #e3f2fd;
-    }
-    header {
-      background-color: #0084ff;
-      color: white;
-      padding: 10px;
-      text-align: center;
-    }
-    section {
-      padding: 15px;
-    }
-    .paquete {
-      background-color: #fff;
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 6px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-    }
-    .aceptar-btn {
-      background-color: #28a745;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 5px;
-      cursor: pointer;
-      margin-top: 5px;
-    }
-    #map {
-      height: 400px;
-      margin-top: 15px;
-    }
+    body { font-family: Arial; margin: 0; background-color: #e3f2fd; }
+    header { background-color: #0084ff; color: white; text-align: center; padding: 10px; }
+    #map { height: 400px; margin: 15px; }
   </style>
 </head>
 <body>
@@ -47,72 +16,31 @@
   <h1>🏍️ Repartidor - Mercado Express</h1>
 </header>
 
-<section id="avisos">
-  <h2>📦 Paquetes disponibles</h2>
-</section>
-
-<section id="ruta" style="display:none;">
-  <h2>📍 Recorrido activo</h2>
-  <div id="map"></div>
-</section>
+<div id="map"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-  // Lista de paquetes simulados con volumen y destino
-  const paquetes = [
-    { volumen: 5, destino: 'Belgrano 123', coords: [-51.6220, -69.2188] },
-    { volumen: 9, destino: 'San Martín 456', coords: [-51.6240, -69.2155] },
-    { volumen: 12, destino: 'Avenida Roca 789', coords: [-51.6200, -69.2200] }
-  ];
+  const destino = [-51.6200, -69.2150];
+  const map = L.map('map').setView([-51.6226, -69.2181], 14);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-  const capacidad = 'moto'; // puede ser 'moto', 'auto', 'camioneta'
+  const moto = L.marker([-51.6226, -69.2181], {
+    icon: L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/128/1048/1048314.png', iconSize: [32,32], iconAnchor: [16,16] })
+  }).addTo(map);
 
-  paquetes.forEach((paq, index) => {
-    // Filtrado por volumen
-    if ((capacidad === 'moto' && paq.volumen <= 6) ||
-        (capacidad === 'auto' && paq.volumen > 6 && paq.volumen <= 10) ||
-        (capacidad === 'camioneta' && paq.volumen > 10)) {
+  // Mover hacia destino
+  setInterval(() => {
+    let pos = moto.getLatLng();
+    let lat = pos.lat + 0.0001;
+    let lng = pos.lng - 0.0001;
+    moto.setLatLng([lat, lng]);
 
-      const div = document.createElement('div');
-      div.className = 'paquete';
-      div.innerHTML = `
-        <strong>Destino:</strong> ${paq.destino}<br>
-        <strong>Volumen:</strong> ${paq.volumen} m³<br>
-        <button class="aceptar-btn" onclick="aceptarViaje(${index})">Aceptar viaje</button>
-      `;
-      document.getElementById('avisos').appendChild(div);
+    // Simulación llegada
+    if (lat >= destino[0] - 0.0005 && lng <= destino[1] + 0.0005 && !window.avisado) {
+      window.avisado = true;
+      alert("📦 Paquete entregado al cliente.");
     }
-  });
-
-  // Recorrido en mapa
-  let map, marcador;
-
-  function aceptarViaje(index) {
-    const coords = paquetes[index].coords;
-    document.getElementById('avisos').style.display = 'none';
-    document.getElementById('ruta').style.display = 'block';
-
-    map = L.map('map').setView(coords, 14);
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-
-    marcador = L.marker(coords, {
-      icon: L.icon({
-        iconUrl: 'https://cdn-icons-png.flaticon.com/128/1048/1048314.png',
-        iconSize: [32, 32],
-        iconAnchor: [16, 16]
-      })
-    }).addTo(map).bindPopup('📦 Paquete en camino').openPopup();
-
-    // Simular movimiento hacia destino
-    setInterval(() => {
-      const pos = marcador.getLatLng();
-      const dx = (Math.random() - 0.5) * 0.001;
-      const dy = (Math.random() - 0.5) * 0.001;
-      marcador.setLatLng([pos.lat + dx, pos.lng + dy]);
-    }, 1500);
-
-    alert('🛵 Recogiste el paquete. Aviso enviado al cliente.');
-  }
+  }, 2000);
 </script>
 
 </body>
