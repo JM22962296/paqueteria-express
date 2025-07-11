@@ -43,9 +43,13 @@
   // Cambio de solapa
   function abrir(seccion) {
     document.getElementById('cliente').style.display = seccion === 'cliente' ? 'block' : 'none';
-    document.getElementById('repartidor').style.display = seccion === 'repartidor' ? 'block' : 'none';
-    document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active'));
-    document.querySelectorAll('nav button')[seccion === 'cliente' ? 0 : 1].classList.add('active');
+  document.getElementById('repartidor').style.display = seccion === 'repartidor' ? 'block' : 'none';
+  document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active'));
+  document.querySelectorAll('nav button')[seccion === 'cliente' ? 0 : 1].classList.add('active');
+
+  // 👇 Esto fuerza el mapa a redibujarse correctamente
+  if (seccion === 'repartidor') {
+    setTimeout(() => map.invalidateSize(), 300);
   }
 
   // Acciones del cliente
