@@ -28,8 +28,10 @@
 
 <section id="noti">
   <h2>¿Recibir paquete ahora?</h2>
-  <button class="btn" onclick="accion('ahora')">✅ Sí</button>
-  <button class="btn" onclick="accion('posponer')">🕓 Posponer</button>
+  <div id="acciones" style="display:none;">
+  <button class="btn" onclick="accion('ahora')">✅ Recibir ahora</button>
+  <button class="btn" onclick="accion('posponer')">🕓 Posponer entrega</button>
+</div>
   <br><br>
   <label>Lugar:</label><input type="text" placeholder="Ej. Calle 123"><br><br>
   <label>Hora:</label><input type="time"><br><br>
@@ -43,12 +45,19 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-  function vista(v) {
-    document.getElementById('noti').style.display = v === 'noti' ? 'block' : 'none';
-    document.getElementById('mapa').style.display = v === 'mapa' ? 'block' : 'none';
-    if (v === 'mapa') setTimeout(() => map.invalidateSize(), 300);
-  }
+  function vista(v) function vista(v) {
+  document.getElementById('noti').style.display = v === 'noti' ? 'block' : 'none';
+  document.getElementById('mapa').style.display = v === 'mapa' ? 'block' : 'none';
+  if (v === 'mapa') setTimeout(() => map.invalidateSize(), 300);
 
+  // 📬 Mostrar aviso si el paquete ha llegado y no hay entrega programada
+  if (v === 'noti' && window.notificado && !puntoEntrega) {
+    alert("📬 Tu paquete ha llegado. ¿Deseás programar la entrega?");
+    document.getElementById('acciones').style.display = 'block';
+  } else {
+    document.getElementById('acciones').style.display = 'none';
+  }
+}
   const map = L.map('map').setView([-51.6226, -69.2181], 14);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
