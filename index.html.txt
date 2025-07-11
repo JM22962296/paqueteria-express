@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Paquetería Express</title>
+  <meta charset="UTF-8">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
+    }
+  </script>
+</head>
+<body>
+  <h2>🗺️ Seguimiento de Envíos Express</h2>
+  <div id="map" style="height: 500px;"></div>
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  <script>
+    const map = L.map('map').setView([-34.6037, -58.3816], 13);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    const marker = L.marker([-34.6037, -58.3816]).addTo(map);
+    marker.bindPopup('📦 Paquete en tránsito');
+  </script>
+</body>
+</html>
