@@ -51,6 +51,19 @@
   // Simulación mapa
   const map = L.map('map').setView([-51.6226, -69.2181], 14);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+  
+  // 📍 Sucursal fija
+const sucursal = L.marker([-51.6215, -69.2185], {
+  icon: L.icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/128/1483/1483336.png',
+    iconSize: [32, 32],
+    iconAnchor: [16, 32]
+  })
+}).addTo(map).bindPopup('🏢 Sucursal Mercado Express');
+
+// Marcador flotante para entrega (se crea dinámicamente)
+let puntoEntrega;
+
   const paquete = L.marker([-51.6226, -69.2181], {
     icon: L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/128/833/833524.png', iconSize: [32,32], iconAnchor: [16,16] })
   }).addTo(map);
