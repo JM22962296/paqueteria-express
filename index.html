@@ -1,28 +1,96 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <title>Paquetería Express</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        text-align: center;
-        margin-top: 50px;
-        background-color: #f2f2f2;
-      }
-      h1 {
-        color: #0084ff;
-      }
-      p {
-        font-size: 18px;
-        color: #444;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>📦 Paquetería Express</h1>
-    <p>¡Tu app web está funcionando correctamente!</p>
-    <p>Pronto podrás ver el mapa, seleccionar entregas y mucho más.</p>
-  </body>
-</html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Paquetería Express</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    body { font-family: Arial; margin: 0; background-color: #f5f5f5; }
+    nav { display: flex; background: #0084ff; }
+    button { flex: 1; padding: 10px; font-size: 16px; color: white; background: none; border: none; }
+    .active { background: #005bb5; }
+    section { display: none; padding: 15px; }
+    #cliente, #repartidor { display: block; }
+    #map { height: 400px; margin-top: 10px; }
+  </style>
+</head>
+<body>
 
+<nav>
+  <button onclick="abrir('cliente')" class="active">🧍 Cliente</button>
+  <button onclick="abrir('repartidor')">🏍️ Repartidor</button>
+</nav>
+
+<section id="cliente">
+  <h2>Opciones de Entrega</h2>
+  <p>¿Querés recibir el paquete ahora que llegó?</p>
+  <button onclick="accionCliente('recibir')">✅ Sí, recibir ahora</button>
+  <button onclick="accionCliente('posponer')">🕓 Posponer entrega</button><br><br>
+  <label>Elegí nuevo lugar (máx 2):</label><br>
+  <input type="text" placeholder="Ej. Calle 123"><br><br>
+  <label>Elegí horario:</label><br>
+  <input type="time"><br><br>
+  <p id="estadoEntrega"></p>
+</section>
+
+<section id="repartidor" style="display:none;">
+  <h2>Seguimiento de Entregas</h2>
+  <div id="map"></div>
+</section>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  // Cambio de solapa
+  function abrir(seccion) {
+    document.getElementById('cliente').style.display = seccion === 'cliente' ? 'block' : 'none';
+    document.getElementById('repartidor').style.display = seccion === 'repartidor' ? 'block' : 'none';
+    document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('nav button')[seccion === 'cliente' ? 0 : 1].classList.add('active');
+  }
+
+  // Acciones del cliente
+  let intentosFallidos = 0;
+  function accionCliente(accion) {
+    if (accion === 'recibir') {
+      document.getElementById('estadoEntrega').innerText = '✔️ Entrega confirmada.';
+    } else {
+      intentosFallidos++;
+      if (intentosFallidos >= 2) {
+        document.getElementById('estadoEntrega').innerText = '⚠️ Debés retirar tu paquete en sucursal.';
+      } else {
+        document.getElementById('estadoEntrega').innerText = '⏳ Entrega pospuesta. Reprogramá lugar y horario.';
+      }
+    }
+  }
+
+  // Mapa en Río Gallegos
+  const map = L.map('map').setView([-51.6226, -69.2181], 14);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+  // Repartidores simulados
+  const motos = [
+    L.marker([-51.6226, -69.2181], { icon: motoIcon() }).addTo(map),
+    L.marker([-51.6270, -69.2205], { icon: motoIcon() }).addTo(map)
+  ];
+
+  function motoIcon() {
+    return L.icon({
+      iconUrl: 'https://cdn-icons-png.flaticon.com/128/685/685352.png', // ícono de moto
+      iconSize: [32, 32],
+      iconAnchor: [16, 16]
+    });
+  }
+
+  // Simulación de movimiento
+  setInterval(() => {
+    motos.forEach(moto => {
+      const pos = moto.getLatLng();
+      const dx = (Math.random() - 0.5) * 0.001;
+      const dy = (Math.random() - 0.5) * 0.001;
+      moto.setLatLng([pos.lat + dx, pos.lng + dy]);
+    });
+  }, 2000);
+</script>
+
+</body>
+</html>
