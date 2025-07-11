@@ -5,137 +5,92 @@
   <title>Cliente - Mercado Express</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background-color: #fff8dc;
-    }
-    header {
-      background-color: #0084ff;
-      color: white;
-      padding: 10px;
-      text-align: center;
-    }
-    nav {
-      background-color: #eee;
-      padding: 10px;
-      display: flex;
-      justify-content: center;
-    }
-    nav button {
-      padding: 10px 20px;
-      margin: 5px;
-      font-size: 16px;
-      cursor: pointer;
-      border-radius: 5px;
-      border: none;
-      background-color: #ffcc00;
-    }
-    section {
-      padding: 15px;
-    }
-    #map {
-      height: 400px;
-      margin-top: 15px;
-    }
-    .btn {
-      background-color: #28a745;
-      color: white;
-      padding: 10px 18px;
-      margin: 10px 0;
-      font-size: 16px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    #contador {
-      font-size: 24px;
-      color: #d32f2f;
-      font-weight: bold;
-      margin-top: 10px;
-    }
+    body { font-family: Arial; margin: 0; background-color: #fff8dc; }
+    header { background-color: #0084ff; color: white; text-align: center; padding: 10px; }
+    nav button { padding: 10px; margin: 5px; background-color: #ffcc00; border: none; border-radius: 5px; }
+    section { padding: 15px; }
+    .btn { background-color: #28a745; color: white; padding: 10px; border: none; border-radius: 5px; margin: 5px; }
+    #contador { font-size: 22px; color: #d32f2f; font-weight: bold; margin-top: 10px; }
+    #map { height: 300px; margin-top: 10px; }
   </style>
 </head>
 <body>
 
 <header>
-  <h1>📦 Mercado Express</h1>
+  <h1>📦 Cliente - Mercado Express</h1>
 </header>
 
 <nav>
-  <button onclick="mostrarVista('notificaciones')">🔔 Notificaciones</button>
-  <button onclick="mostrarVista('seguimiento')">🗺️ ¿Dónde está tu paquete?</button>
+  <button onclick="vista('noti')">🔔 Notificaciones</button>
+  <button onclick="vista('mapa')">🗺️ Ver paquete</button>
 </nav>
 
-<section id="notificaciones">
-  <h2>Tu paquete llegó a destino</h2>
-  <p>¿Deseás recibirlo ahora?</p>
-  <button class="btn" onclick="recibir()">✅ Recibir ahora</button>
-  <button class="btn" onclick="posponer()">🕓 Posponer entrega</button><br><br>
-
-  <label>Lugar:</label><br>
-  <input type="text" placeholder="Ej. Calle 123"><br><br>
-  <label>Horario:</label><br>
-  <input type="time"><br><br>
-
+<section id="noti">
+  <h2>¿Recibir paquete ahora?</h2>
+  <button class="btn" onclick="accion('ahora')">✅ Sí</button>
+  <button class="btn" onclick="accion('posponer')">🕓 Posponer</button>
+  <br><br>
+  <label>Lugar:</label><input type="text" placeholder="Ej. Calle 123"><br><br>
+  <label>Hora:</label><input type="time"><br><br>
   <div id="contador"></div>
 </section>
 
-<section id="seguimiento" style="display:none;">
-  <h2>Paquete en tránsito</h2>
+<section id="mapa" style="display:none;">
+  <h2>Seguimiento en tiempo real</h2>
   <div id="map"></div>
 </section>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-  function mostrarVista(vista) {
-    document.getElementById('notificaciones').style.display = vista === 'notificaciones' ? 'block' : 'none';
-    document.getElementById('seguimiento').style.display = vista === 'seguimiento' ? 'block' : 'none';
-    if (vista === 'seguimiento') setTimeout(() => map.invalidateSize(), 300);
+  function vista(v) {
+    document.getElementById('noti').style.display = v === 'noti' ? 'block' : 'none';
+    document.getElementById('mapa').style.display = v === 'mapa' ? 'block' : 'none';
+    if (v === 'mapa') setTimeout(() => map.invalidateSize(), 300);
   }
 
-  function recibir() {
-    iniciarContador(3); // simulamos llegada en 3 minutos
-  }
+  // Simulación mapa
+  const map = L.map('map').setView([-51.6226, -69.2181], 14);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+  const paquete = L.marker([-51.6226, -69.2181], {
+    icon: L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/128/833/833524.png', iconSize: [32,32], iconAnchor: [16,16] })
+  }).addTo(map);
 
-  function posponer() {
-    iniciarContador(10); // reprogramación en 10 minutos
+  // Movimiento simulado
+  setInterval(() => {
+    let pos = paquete.getLatLng();
+    let dx = 0.0001, dy = -0.0001;
+    paquete.setLatLng([pos.lat + dx, pos.lng + dy]);
+
+    // Si llegó al destino, muestra notificación
+    if (pos.lat < -51.621 && !window.notificado) {
+      window.notificado = true;
+      alert("📬 Tu paquete llegó a destino. ¿Querés recibirlo?");
+    }
+  }, 2000);
+
+  function accion(tipo) {
+    if (tipo === 'ahora') {
+      iniciarContador(3);
+    } else {
+      iniciarContador(10);
+    }
   }
 
   function iniciarContador(minutos) {
-    let tiempo = minutos * 60;
-    const contador = document.getElementById('contador');
-    const intervalo = setInterval(() => {
-      const m = Math.floor(tiempo / 60);
-      const s = tiempo % 60;
-      contador.innerText = `⏳ Tu paquete llega en ${m}:${s < 10 ? '0' + s : s} minutos`;
-      tiempo--;
-      if (tiempo < 0) {
-        clearInterval(intervalo);
-        contador.innerText = '📦 Tu paquete llegó.';
+    let t = minutos * 60;
+    let el = document.getElementById('contador');
+    let i = setInterval(() => {
+      let m = Math.floor(t/60), s = t%60;
+      el.innerText = `⏳ Falta ${m}:${s<10?'0'+s:s} para recibir tu paquete`;
+      t--;
+      if (t < 0) {
+        clearInterval(i);
+        el.innerText = '📦 Entrega completada';
       }
     }, 1000);
   }
-
-  // Mapa simulado en Río Gallegos
-  const map = L.map('map').setView([-51.6226, -69.2181], 14);
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-
-  const paquete = L.marker([-51.6226, -69.2181], {
-    icon: L.icon({
-      iconUrl: 'https://cdn-icons-png.flaticon.com/128/833/833524.png',
-      iconSize: [32, 32],
-      iconAnchor: [16, 16]
-    })
-  }).addTo(map).bindPopup('📦 En tránsito');
-
-  setInterval(() => {
-    const pos = paquete.getLatLng();
-    const dx = (Math.random() - 0.5) * 0.001;
-    const dy = (Math.random() - 0.5) * 0.001;
-    paquete.setLatLng([pos.lat + dx, pos.lng + dy]);
-  }, 1500);
 </script>
 
 </body>
 </html>
+
