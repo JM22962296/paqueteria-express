@@ -101,8 +101,8 @@
     <button class="btn" onclick="accion('posponer')">🕓 Posponer entrega</button>
   </div>
 
-  <label>Lugar:</label><input type="text" placeholder="Ej. Calle 123"><br><br>
-  <label>Hora:</label><input type="time"><br><br>
+  <label>Lugar:</label><input type="text" id="direccion" placeholder="Ej. Calle 123"><br><br>
+  <label>Hora:</label><input type="time" id="horaEntrega"><br><br>
   <div id="contador"></div>
 </section>
 
@@ -115,10 +115,13 @@
 <script>
   window.notificado = false;
 
-  const map = L.map('map').setView([-51.6226, -69.2181], 14);
+  const coordsEntrega = [-51.6205, -69.2175];
+  const sucursalCoords = [-51.6215, -69.2185];
+
+  const map = L.map('map').setView(sucursalCoords, 14);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-  const sucursal = L.marker([-51.6215, -69.2185], {
+  const sucursal = L.marker(sucursalCoords, {
     icon: L.icon({
       iconUrl: 'https://cdn-icons-png.flaticon.com/128/1483/1483336.png',
       iconSize: [32, 32],
@@ -126,7 +129,7 @@
     })
   }).addTo(map).bindPopup('🏢 Sucursal Mercado Express');
 
-  const paquete = L.marker([-51.6226, -69.2181], {
+  const paquete = L.marker(sucursalCoords, {
     icon: L.icon({
       iconUrl: 'https://cdn-icons-png.flaticon.com/128/826/826278.png',
       iconSize: [32, 32],
@@ -137,17 +140,23 @@
   let puntoEntrega;
   let rutaEntrega;
 
+  // ⏳ Simular movimiento de la moto en el mapa
   setInterval(() => {
     const pos = paquete.getLatLng();
-    const nuevaLat = pos.lat + 0.0002;
-    const nuevaLng = pos.lng - 0.0001;
+    const dx = (coordsEntrega[0] - pos.lat) * 0.05;
+    const dy = (coordsEntrega[1] - pos.lng) * 0.05;
+    const nuevaLat = pos.lat + dx;
+    const nuevaLng = pos.lng + dy;
     paquete.setLatLng([nuevaLat, nuevaLng]);
+  }, 2000);
 
-    if (nuevaLat < -51.622 && !window.notificado && !puntoEntrega) {
+  // ⏱️ Lanzar notificación 30 segundos después de abrir la app
+  setTimeout(() => {
+    if (!window.notificado && !puntoEntrega) {
       window.notificado = true;
       document.getElementById('alerta').style.display = 'inline-block';
     }
-  }, 2000);
+  }, 30000);
 
   function vista(v) {
     document.getElementById('noti').style.display = v === 'noti' ? 'block' : 'none';
@@ -162,42 +171,37 @@
   }
 
   function accion(tipo) {
-    const mensaje = tipo === 'ahora'
-      ? "📍 Ingresá calle y número + horario de entrega (Ej: Av Roca 123 - 17:30)"
-      : "📍 Reprogramación: Ingresá nueva dirección y hora";
+    const direccion = document.getElementById('direccion').value.trim();
+    const hora = document.getElementById('horaEntrega').value.trim();
 
-    const datos = prompt(mensaje);
-    if (datos) {
-      const minutos = tipo === 'ahora' ? 3 : 10;
-      document.getElementById('contador').innerText = `⏳ Tu paquete se entregará en ${minutos} minutos`;
-
-      const coordsEntrega = tipo === 'ahora'
-        ? [-51.6205, -69.2175]
-        : [-51.6212, -69.2160];
-
-      if (puntoEntrega) map.removeLayer(puntoEntrega);
-
-      puntoEntrega = L.marker(coordsEntrega, {
-        icon: L.icon({
-          iconUrl: 'https://cdn-icons-png.flaticon.com/128/684/684908.png',
-          iconSize: [32, 32],
-          iconAnchor: [16, 32]
-        })
-      }).addTo(map).bindPopup(`📦 Entrega programada:<br>${datos}`).openPopup();
-
-      if (rutaEntrega) map.removeLayer(rutaEntrega);
-
-      rutaEntrega = L.polyline([sucursal.getLatLng(), coordsEntrega], {
-        color: 'violet',
-        weight: 5,
-        opacity: 0.9,
-        dashArray: '8,5'
-      }).addTo(map);
-
-      iniciarContador(minutos);
-      map.setView(coordsEntrega, 15);
-      vista('mapa');
+    if (!direccion || !hora) {
+      alert("📍 Ingresá dirección y hora de entrega");
+      return;
     }
+
+    const minutos = tipo === 'ahora' ? 3 : 10;
+    document.getElementById('contador').innerText = `⏳ Tu paquete se entregará en ${minutos} minutos`;
+
+    if (puntoEntrega) map.removeLayer(puntoEntrega);
+    puntoEntrega = L.marker(coordsEntrega, {
+      icon: L.icon({
+        iconUrl: 'https://cdn-icons-png.flaticon.com/128/684/684908.png',
+        iconSize: [32, 32],
+        iconAnchor: [16, 32]
+      })
+    }).addTo(map).bindPopup(`📦 Entrega programada:<br>${direccion} a las ${hora}`).openPopup();
+
+    if (rutaEntrega) map.removeLayer(rutaEntrega);
+    rutaEntrega = L.polyline([sucursalCoords, coordsEntrega], {
+      color: 'violet',
+      weight: 5,
+      opacity: 0.9,
+      dashArray: '8,5'
+    }).addTo(map);
+
+    iniciarContador(minutos);
+    map.setView(coordsEntrega, 15);
+    vista('mapa');
   }
 
   function iniciarContador(minutos) {
